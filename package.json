@@ -1,0 +1,22 @@
+{
+  "name": "es-controller",
+  "version": "1.0.0",
+  "description": "MVC Controller for Node/Express application",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/es-compose/es-controller.git"
+  },
+  "keywords": [
+    "Node"
+  ],
+  "author": "Alamin Ahmed @ Softwarable",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/es-compose/es-controller/issues"
+  },
+  "homepage": "https://github.com/es-compose/es-controller#readme"
+}
