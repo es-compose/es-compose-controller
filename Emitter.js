@@ -15,20 +15,6 @@ class Emitter {
 
     /**
      * 
-     * @param {*} script 
-     * @param {*} data 
-     * @param {*} status 
-     */
-    view(script, data) {
-        if(!response.renderer) {
-            throw new Error("Renderer is not found in the response.");
-        }
-
-        response.renderer(script, data);
-    }
-
-    /**
-     * 
      * @param {*} html 
      * @param {*} data 
      */

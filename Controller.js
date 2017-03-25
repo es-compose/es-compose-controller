@@ -1,6 +1,5 @@
 let ActionResolver = require('./ActionResolver');
 let Emitter = require('./Emitter');
-let View = require('./View');
 
 /**
  * Restful Action Controller for Node +/ Express applications
@@ -69,11 +68,7 @@ class Controller
             // invoke the action handler
             let result = Reflect.apply(handler, this, [...params]);
             if(result) {
-                if(result instanceof View) { // if view object is returned,
-                    this.emitter.view(result.script, result);
-                } else {
-                    this.emitter.emit(result);
-                }
+                this.emitter.emit(result);
             } else {
                 // if result isn't passed,
                 // assumption is that action handler has responded
