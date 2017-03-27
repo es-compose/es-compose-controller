@@ -1,3 +1,5 @@
+'use strict';
+
 let ResolverError = require("./ResolverError");
 const _ = require('lodash');
 
@@ -50,8 +52,8 @@ class ActionResolver
         console.log(`Generated action name: ${handler}`, verb, params);
 
         if(target[handler]) {
-             // eat up the first param, which is being used for resolving action
-             delete request.params[0]; // delete the param which used for routing
+            // eat up the first param, which is being used for resolving action
+            delete request.params[0]; // delete the param which used for routing
             return target[handler];
         }
 
@@ -86,7 +88,6 @@ class ActionResolver
      * @param {*} request 
      */
     parseParams(request) {
-        
         // parse the paths, action and params
         const path = request.path || request.url;
         let paths = path.split('/').filter( i => i.trim() != '');
@@ -110,6 +111,14 @@ class ActionResolver
      * @param {*} params 
      */
     validate(handler, params) {
+        if(!handler) {
+            throw new Error('Unable to resolve handler for the request.');
+        }
+
+        if(typeof handler !== 'function') {
+            throw new Error(`Action handler ${handler} is not a function`);
+        }
+
         if(handler.length > params.length) {
             throw new ResolverError(`Action handler needs ${handler.length} params, got ${params.length}`);
         }

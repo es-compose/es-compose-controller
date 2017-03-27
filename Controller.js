@@ -1,5 +1,7 @@
+'use strict';
+
 let ActionResolver = require('./ActionResolver');
-let Emitter = require('./Emitter');
+let ResponseHelper = require('./ResponseHelper');
 
 /**
  * Restful Action Controller for Node +/ Express applications
@@ -10,27 +12,28 @@ let Emitter = require('./Emitter');
 class Controller
 {
     /**
-     * 
-     * @param {*} context 
      */
-    constructor(context = null) {
-        this.request = null;
-        this.response = null;
+    constructor() {
         this.resolver = new ActionResolver(this);
-        this.context = context || {};
     }
 
     /**
-     * Dispatcher listener (nodejs) / Middleware (expressjs)
-     * Convinient factory method for returning dispatcher
+     * request handler (nodejs) / Middleware (expressjs) wrapper function
      */
     static handler(context = null) {
-        let instance = new this(context);
-        
-        // return the callable wrapper to dispatch method
-        return function(request, response, next = null) {
-            this.dispatch(request, response, next);
-        }.bind(instance);
+        // return the callable wrapper to internal process method
+        return (request, response, next = null) => {
+            if(!context) { //
+                context = new Object();
+            }
+
+            let instance = new this();
+
+            context.request = request;
+            context.response = response;
+            context.next = next;
+            instance.process(context);
+        };
     }
 
     /**
@@ -38,76 +41,70 @@ class Controller
      * @param {*} response 
      * @param {*} next 
      */
-    dispatch(request, response, next = null) {
-        this.request = request;
-        this.response = response;
-        this.emitter = new Emitter(response);
+    process(context) {
+        // the the currently processing context
+        this.context = context;
+        let request = context.request;
+        let response = context.response;
 
         try {
-            // call initialize event method
-            this.onInit();
+            this.onInit(context);
 
             if(!this.resolver) {
-               throw new ResolverError("Action resolver is not found.");
+                throw new Error("Action resolver is not found.");
             }
 
             let handler = this.resolver.resolve(request);
-            if(!handler) {
-                throw new Error('Unable to resolve handler for the request.');
-            }
 
-            if(typeof handler !== 'function') {
-                throw new Error(`Action handler ${handler} is not a function`);
-            }
-
-            // setup and validate params
             let params = Object.values(request.params);
-            params.unshift(request, response); // add the request and response object
+            params.unshift(context); // add the request and response object
             this.resolver.validate(handler, params);
 
-            // invoke the action handler
             let result = Reflect.apply(handler, this, [...params]);
+
             if(result) {
-                this.emitter.emit(result);
+                ResponseHelper.send(response, result);
             } else {
-                // if result isn't passed,
-                // assumption is that action handler has responded
+                // assume that response has been sent using explicit call to send/end.
             }
+
+            this.onExit(context);   
         }
         
         catch(e) {
-            this.onError(e);
+            this.onError(e, context);
         }
-
-        // finally call the exit method
-        this.onExit();
     }
+
 
     /**
      * Controller initialization method
      * This event is called before dispatching action to handler
      */
-    onInit() {}
+    onInit(context) {}
 
-    /**
-     * Controller level error/exception handler
-     * @param {*} error 
-     */
-    onError(error) {
-        let next = this.next || null;
-        if(next) {
-            next(error, request, response);
-        } else {
-            throw error;
-        }
-    }
 
     /**
      * Controller exit method
      * 
-     * This method is called after action handler has been executed
+     * This method is called after action handler has been executed 
+     * and response has been sent 
+     * @param {object} context application context
      */
-    onExit() {}
+    onExit(context) {}
+
+    /**
+     * Controller level error/exception handler
+     * 
+     * Override for providing custom error handler
+     * Default implementation is to forward to next handler if part of middleware stack
+     * If not simply re-throw the error
+     * @param {*} error 
+     * @param {object} context application context
+     */
+    onError(error, context) {
+        throw error;
+    }
 }
 
 module.exports = Controller;
