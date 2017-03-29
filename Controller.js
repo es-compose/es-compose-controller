@@ -12,6 +12,7 @@ let ResponseHelper = require('./ResponseHelper');
 class Controller
 {
     /**
+     * Initialize the controller
      */
     constructor() {
         this.resolver = new ActionResolver(this);

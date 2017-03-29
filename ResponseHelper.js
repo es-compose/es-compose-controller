@@ -5,21 +5,17 @@
  * If express presence (check for express features), it will use it,
  */
 class ResponseHelper {
+    
     /**
-     * @todo need some refactor and testing and logics
-     * @param {any} data 
-     * @param {int} status 
-     * @param {Ojbect} headers 
+     * 
+     * @param {*} response 
+     * @param {*} data 
      */
-    static send(response, data) {
+    static async send(response, data) {
         // if promise is send, we will wait for resolve
-        // this probably will be case for view/renering
+        // this probably will be case for view/renering/async
         if(data instanceof Promise) {
-            data.then(content => {
-                this.send(content);
-            });
-
-            return; // callback will handle
+            data = await data;
         }
 
         switch(typeof data) {

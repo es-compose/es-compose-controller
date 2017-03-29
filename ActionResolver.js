@@ -13,10 +13,10 @@ class ActionResolver
 {
     constructor(target = null) {
         this.target = target;
-        this.defaultAction = 'index';
+        this.indexMethod = 'index';
         this.actionPrefix = 'do';
         this.actionSuffix = '';
-        this.verbs = {
+        this.methods = {
             get: 'get',
             post: 'post',
             put: 'put',
@@ -32,32 +32,26 @@ class ActionResolver
     resolve(request) {
         let target = this.target;
         let params = this.parseParams(request);
-        let method = request.method.toLowerCase();
-        let verb = params.length == 0 && method == 'get' ? this.defaultAction : method;
+        let method = request.method.toLowerCase() 
+        let restfulHandler, actionHandler;
 
-        // first attempt, check if generic restful methods are available
-        // ie, doGet, doPost, etc.
-        let handler = this.generateHandlerName(verb);
-        
-        console.log(`Generated action name: ${handler}`, verb, params);
+        // first try resource based action handlers
+        restfulHandler = this.resolveHandler(target, method, null, params);
 
-        if(target[handler]) {  
-            return target[handler];
-        }
-
-        // now attempt to do action based restful methods
         // ie, doGetUsers, doPostUsers
         let action = params.shift();
-        handler = this.generateHandlerName(method, action); // note, NOT using verb, but method. (no default action)
-        console.log(`Generated action name: ${handler}`, verb, params);
+        actionHandler = this.resolveHandler(target, method, action, params);
 
-        if(target[handler]) {
-            // eat up the first param, which is being used for resolving action
-            delete request.params[0]; // delete the param which used for routing
-            return target[handler];
+        if(restfulHandler && actionHandler) {
+            throw new ResolverError(`Cannot have both resource and action handlers: 
+                                    ${restfulHandler.name} ${actionHandler.name}. Implement just one`);
         }
 
-        return null;
+        if(actionHandler) {
+            delete request.params[0]; // delete the param which used for routing
+        }
+
+        return restfulHandler || actionHandler || null;
     }
 
     /**
@@ -69,8 +63,7 @@ class ActionResolver
     generateHandlerName(method = null, action = null) {
         let parts = [];
         if(method) {
-            method = method.toLowerCase();
-            method = this.verbs[method] || method;
+            method = this.methods[method] || method;
             parts.push(method)
         }
         if(action) parts.push(action);
@@ -79,6 +72,32 @@ class ActionResolver
         if(this.actionSuffix) parts.push(this.actionSuffix);
 
         return _.camelCase(parts.join('-'));
+    }
+
+    /**
+     * 
+     * @param {*} target 
+     * @param {*} method 
+     * @param {*} action 
+     */
+    resolveHandler(target, method, action, params) {
+        let handler;
+
+        // check special index method
+        if(params.length == 0 && method.toLowerCase() == 'get') {
+            handler = this.generateHandlerName(this.indexMethod, action);
+            console.log(`Generated action name: ${handler}`, method, params);
+
+            if(target[handler]) return target[handler];
+        }
+
+        // ie, doGet, doPost, etc.
+        handler = this.generateHandlerName(method, action);
+        console.log(`Generated action name: ${handler}`, method, params);
+
+        if(target[handler]) return target[handler];
+        
+        return null;
     }
 
     /**
@@ -122,7 +141,6 @@ class ActionResolver
         if(handler.length > params.length) {
             throw new ResolverError(`Action handler needs ${handler.length} params, got ${params.length}`);
         }
-        // test.toString().match(/(function.+\()(.+(?=\)))(.+$)/)[2];
     }
 }
 
