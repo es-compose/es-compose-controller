@@ -26,6 +26,8 @@ class ActionResolver
     
     /**
      * Overriding the resolveHandler for routing restful actions
+     * 
+     * @todo revist logics and control flow of this method
      * @param {*} method 
      * @param {*} params 
      */
@@ -42,7 +44,7 @@ class ActionResolver
         let action = params.shift();
         actionHandler = this.resolveHandler(target, method, action, params);
 
-        if(restfulHandler && actionHandler) {
+        if(restfulHandler && actionHandler && (restfulHandler != actionHandler)) {
             throw new ResolverError(`Cannot have both resource and action handlers: 
                                     ${restfulHandler.name} ${actionHandler.name}. Implement just one`);
         }

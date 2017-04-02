@@ -19,7 +19,7 @@ class Controller
     }
 
     /**
-     * request handler (nodejs) / Middleware (expressjs) wrapper function
+     * request handler (nodejs) / Middleware (expressjs/connect) wrapper function
      */
     static handler(context = null) {
         // return the callable wrapper to internal process method
