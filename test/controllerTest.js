@@ -1,9 +1,16 @@
 var chai = require('chai');
 let expect = chai.expect;
+const Controller = require('../');
+
+class TestController extends Controller
+{
+    doIndex() {
+        
+    }
+}
 
 
 describe("Controller", () => {
-    const Controller = require('../');
     let controller = new Controller();
 
     it("should return express handler", () => {
