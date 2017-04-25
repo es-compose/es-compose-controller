@@ -1,10 +1,10 @@
 {
   "name": "es-controller",
-  "version": "1.1.6",
+  "version": "1.1.8",
   "description": "MVC Controller for Node/Express application",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
@@ -19,12 +19,13 @@
   },
   "homepage": "https://github.com/es-compose/es-controller#readme",
   "dependencies": {
-    "es-http": "github:es-compose/es-http",
+    "es-http": "git://github.com/es-compose/es-http.git",
     "lodash": "^4.17.4"
   },
   "devDependencies": {
     "chai": "^3.5.0",
     "mocha": "^3.2.0",
+    "node-mocks-http": "^1.6.1",
     "supertest": "^3.0.0"
   }
 }

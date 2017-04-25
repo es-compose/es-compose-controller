@@ -1,6 +1,7 @@
 var chai = require('chai');
 let expect = chai.expect;
 const Controller = require('../');
+let http = require('node-mocks-http');
 
 class TestController extends Controller
 {
@@ -18,20 +19,13 @@ let next = function(...args) {
 }
 
 let context = {
-    request : {
-        method: 'get',
+    request : http.createRequest({
+        method: 'GET',
         url: '/',
-        path: '',
         params: {}
-    },
-    response:  {
-        send(content) {
-            this.content = content;
-        }
-    },
-
+    }),
+    response:  http.createResponse(),
     next: next
-    
 }
 
 
@@ -39,23 +33,30 @@ describe("Controller", () => {
     let controller = new Controller();
     let tc = new TestController();
 
-    it("should return express handler", () => {
-        let handler = controller.handler();
-        expect(handler).be.a('function');
-    })
+    // it("should return express handler", () => {
+    //     let handler = controller.handler();
+    //     expect(handler).be.a('function');
+    // })
 
     it("should handle simple return data", async function() {
+        context.response = http.createResponse();
         let result = await tc.invoke(context, next);
-        expect(context.response.content).to.be.eq("Hello");
+        expect(context.response._getData()).to.be.eq("Hello");
     })
 
 
     it("should handle promise return type", async () => {
+        context.response = http.createResponse();
         context.request.params['param'] = 'value';
         let result = await tc.invoke(context, next);
-        expect(context.response.content).to.be.eq("Promised");
+        expect(context.response._getData()).to.be.eq("Promised");
     })
 
 
+    // it("can using text() helper", () => {
+    //     context.response = http.createResponse();
+    //     tc.text('Hi!');
+    //     expect(context.response._getData()).to.be.eq('Hi!');
+    // })
 
 });
