@@ -15,7 +15,7 @@ class TestController extends Controller
 }
 
 let next = function(...args) {
-    console.log('next called', args);
+    console.log('next called');
 }
 
 let context = {
